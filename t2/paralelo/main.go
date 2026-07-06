@@ -50,8 +50,8 @@ func main() {
 
 	numRows := endRow - startRow
 
-	localA := createMatrix(numRows)
-	//localC := createMatrix(numRows)
+	localA := make([]float64, numRows*N)
+	//localC := make([]float64, numRows*N)
 
 	fmt.Printf(
 		"Processo %d receberá %d linhas (%d elementos).\n",
