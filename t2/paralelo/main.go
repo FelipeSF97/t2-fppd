@@ -51,6 +51,7 @@ func main() {
 	numRows := endRow - startRow
 
 	localA := make([]float64, numRows*N)
+	localB := createMatrix(N)
 	//localC := make([]float64, numRows*N)
 
 	fmt.Printf(
@@ -91,6 +92,14 @@ func main() {
 			)
 		}
 
+		// O mestre também precisa de B
+		copy(localB, B)
+
+		// Envia B inteira para todos os trabalhadores
+		for dest := 1; dest < size; dest++ {
+			world.Send(B, dest, 1)
+		}
+
 		fmt.Printf("Matriz A: %d elementos\n", len(A))
 		fmt.Printf("Matriz B: %d elementos\n", len(B))
 		fmt.Printf("Matriz C: %d elementos\n", len(C))
@@ -100,6 +109,14 @@ func main() {
 			&localA,
 			0,
 			0,
+		)
+
+		world.Recv(&localB, 0, 1)
+
+		fmt.Printf(
+			"Processo %d recebeu %d elementos de B\n",
+			rank,
+			len(localB),
 		)
 
 		fmt.Printf(
