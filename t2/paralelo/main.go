@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"time"
 
 	mpi "github.com/mvneves/gompi"
 )
@@ -111,6 +112,8 @@ func main() {
 		fillMatrix(A)
 		fillMatrix(B)
 
+		startTime := time.Now()
+
 		for dest := 1; dest < size; dest++ {
 
 			start, end := getWorkload(dest, size, N)
@@ -168,6 +171,10 @@ func main() {
 		}
 
 		fmt.Println("Todos os blocos foram recebidos.")
+
+		elapsed := time.Since(startTime)
+
+		fmt.Printf("\nTempo paralelo: %v\n", elapsed)
 
 		printVerification(C, N)
 	} else {
