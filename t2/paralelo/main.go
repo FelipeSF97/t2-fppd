@@ -37,6 +37,20 @@ func getWorkload(rank, size, n int) (startRow, endRow int) {
 	return
 }
 
+func multiplyLocal(localA, localB, localC []float64, numRows, n int) {
+	for i := 0; i < numRows; i++ {
+		for j := 0; j < n; j++ {
+			sum := 0.0
+
+			for k := 0; k < n; k++ {
+				sum += localA[i*n+k] * localB[k*n+j]
+			}
+
+			localC[i*n+j] = sum
+		}
+	}
+}
+
 func main() {
 	mpi.Init()
 	defer mpi.Finalize()
@@ -52,7 +66,7 @@ func main() {
 
 	localA := make([]float64, numRows*N)
 	localB := createMatrix(N)
-	//localC := make([]float64, numRows*N)
+	localC := make([]float64, numRows*N)
 
 	fmt.Printf(
 		"Processo %d receberá %d linhas (%d elementos).\n",
@@ -128,4 +142,11 @@ func main() {
 	}
 
 	fmt.Printf("Processo %d de %d iniciado.\n", rank, size)
+
+	multiplyLocal(localA, localB, localC, numRows, N)
+
+	fmt.Printf(
+		"Processo %d terminou seu bloco.\n",
+		rank,
+	)
 }
