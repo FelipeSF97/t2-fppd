@@ -50,6 +50,22 @@ func multiplyLocal(localA, localB, localC []float64, numRows, n int) {
 	}
 }
 
+func printVerification(c []float64, n int) {
+	fmt.Println("\nValores para verificação:")
+
+	fmt.Printf("C[0][0] = %.2f\n", c[0])
+	fmt.Printf("C[0][N-1] = %.2f\n", c[n-1])
+	fmt.Printf("C[N-1][0] = %.2f\n", c[(n-1)*n])
+	fmt.Printf("C[N-1][N-1] = %.2f\n", c[n*n-1])
+
+	checksum := 0.0
+	for _, v := range c {
+		checksum += v
+	}
+
+	fmt.Printf("Checksum = %.2f\n", checksum)
+}
+
 func main() {
 	mpi.Init()
 	defer mpi.Finalize()
@@ -152,6 +168,8 @@ func main() {
 		}
 
 		fmt.Println("Todos os blocos foram recebidos.")
+
+		printVerification(C, N)
 	} else {
 
 		world.Recv(
