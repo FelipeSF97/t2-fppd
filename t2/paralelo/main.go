@@ -51,7 +51,7 @@ func main() {
 	numRows := endRow - startRow
 
 	localA := createMatrix(numRows)
-	localC := createMatrix(numRows)
+	//localC := createMatrix(numRows)
 
 	fmt.Printf(
 		"Processo %d receberá %d linhas (%d elementos).\n",
