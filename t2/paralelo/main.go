@@ -29,7 +29,6 @@ func getWorkload(rank, size, n int) (startRow, endRow int) {
 	startRow = rank * rowsPerProcess
 	endRow = startRow + rowsPerProcess
 
-	// O último processo recebe as linhas restantes
 	if rank == size-1 {
 		endRow += remainder
 	}
@@ -60,6 +59,8 @@ func main() {
 	rank := world.GetRank()
 	size := world.GetSize()
 
+	fmt.Printf("Processo %d de %d iniciado.\n", rank, size)
+
 	startRow, endRow := getWorkload(rank, size, N)
 
 	numRows := endRow - startRow
@@ -83,7 +84,6 @@ func main() {
 	)
 
 	if rank == 0 {
-		// Seed fixa
 		rand.Seed(Seed)
 
 		fmt.Println("Gerando matrizes...")
@@ -106,10 +106,13 @@ func main() {
 			)
 		}
 
-		// O mestre também precisa de B
+		copy(
+			localA,
+			A[startRow*N:endRow*N],
+		)
+
 		copy(localB, B)
 
-		// Envia B inteira para todos os trabalhadores
 		for dest := 1; dest < size; dest++ {
 			world.Send(B, dest, 1)
 		}
@@ -117,6 +120,38 @@ func main() {
 		fmt.Printf("Matriz A: %d elementos\n", len(A))
 		fmt.Printf("Matriz B: %d elementos\n", len(B))
 		fmt.Printf("Matriz C: %d elementos\n", len(C))
+
+		multiplyLocal(localA, localB, localC, numRows, N)
+
+		fmt.Printf(
+			"Processo %d terminou seu bloco.\n",
+			rank,
+		)
+
+		copy(
+			C[startRow*N:endRow*N],
+			localC,
+		)
+
+		for src := 1; src < size; src++ {
+
+			start, end := getWorkload(src, size, N)
+
+			buffer := make([]float64, (end-start)*N)
+
+			world.Recv(
+				&buffer,
+				src,
+				2,
+			)
+
+			copy(
+				C[start*N:end*N],
+				buffer,
+			)
+		}
+
+		fmt.Println("Todos os blocos foram recebidos.")
 	} else {
 
 		world.Recv(
@@ -139,14 +174,17 @@ func main() {
 			len(localA),
 		)
 
+		multiplyLocal(localA, localB, localC, numRows, N)
+
+		fmt.Printf(
+			"Processo %d terminou seu bloco.\n",
+			rank,
+		)
+
+		world.Send(
+			localC,
+			0,
+			2,
+		)
 	}
-
-	fmt.Printf("Processo %d de %d iniciado.\n", rank, size)
-
-	multiplyLocal(localA, localB, localC, numRows, N)
-
-	fmt.Printf(
-		"Processo %d terminou seu bloco.\n",
-		rank,
-	)
 }
